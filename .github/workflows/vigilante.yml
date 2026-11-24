@@ -5,7 +5,7 @@ name: vigilante
 
 on:
   schedule:
-    - cron: '2-59/5 * * * *'  # el sondeo, cada 5 min y lejos del minuto 0 (GitHub no lo garantiza puntual)
+    - cron: '2-59/5 * * * *'  # el sondeo, cada 5 min, lejos del :00 (GitHub no lo garantiza puntual)
     - cron: '23 7 1,15 * *'   # el latido: sin actividad en 60 días, GitHub apaga el schedule
   workflow_dispatch:
     inputs:
