@@ -32,6 +32,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DIRECCION_FALSA: ${{ inputs.direccion_falsa }}
+          AVISAR: '@aenergia-admin'
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: bash vigilante.sh
 

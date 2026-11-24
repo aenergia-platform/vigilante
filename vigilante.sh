@@ -11,13 +11,15 @@
 #   - Si algo está caído, el run acaba en ROJO (exit 1): GitHub manda su aviso de run fallido.
 #
 # Entorno: GITHUB_REPOSITORY y GH_TOKEN (los pone Actions), RUN_URL (enlace del run),
-# DIRECCION_FALSA (opcional, solo para probar el aviso: se lee como una dirección más).
+# DIRECCION_FALSA (opcional, solo para probar el aviso: se lee como una dirección más),
+# AVISAR (las cuentas que se mencionan al abrir y al cerrar: una mención notifica siempre).
 set -uo pipefail
 
 REPO="${GITHUB_REPOSITORY:?falta GITHUB_REPOSITORY}"
 RUN_URL="${RUN_URL:-}"
 AHORA="$(date -u +%Y-%m-%dT%H:%MZ)"
 ESPERA_REINTENTO="${ESPERA_REINTENTO:-20}"
+AVISAR="${AVISAR:-}"
 
 # nombre | dirección | condición jq que el cuerpo debe cumplir (además del 200)
 OBJETIVOS=(
@@ -70,7 +72,7 @@ LISTA="$(IFS=','; echo "${CAIDOS[*]:-}" | sed 's/,/, /g')"
 MARCA="<!-- caidos: ${LISTA} -->"
 
 if [ "${#CAIDOS[@]}" -gt 0 ]; then
-  CUERPO="${MARCA}"$'\n'"**${LISTA}** no responde desde las **${AHORA}** (dos lecturas seguidas, separadas ${ESPERA_REINTENTO} s)."$'\n\n'"${TABLA}"$'\n\n'"Run: ${RUN_URL}"$'\n\n'"Esta issue se cierra sola cuando todo vuelve a responder."
+  CUERPO="${MARCA}"$'\n'"**${LISTA}** no responde desde las **${AHORA}** (dos lecturas seguidas, separadas ${ESPERA_REINTENTO} s)."$'\n\n'"${TABLA}"$'\n\n'"Run: ${RUN_URL}"$'\n\n'"Esta issue se cierra sola cuando todo vuelve a responder. ${AVISAR}"
   if [ -z "$ABIERTA" ]; then
     gh label create caida -R "$REPO" --color B60205 --description "Una dirección de aEnergia no responde" --force >/dev/null
     url_issue="$(gh issue create -R "$REPO" --label caida --title "CAÍDO: ${LISTA}, desde ${AHORA}" --body "$CUERPO")"
@@ -89,7 +91,7 @@ if [ "${#CAIDOS[@]}" -gt 0 ]; then
 fi
 
 if [ -n "$ABIERTA" ]; then
-  gh issue comment "$ABIERTA" -R "$REPO" --body "Todo vuelve a responder a las **${AHORA}**."$'\n\n'"${TABLA}"$'\n\n'"Run: ${RUN_URL}" >/dev/null
+  gh issue comment "$ABIERTA" -R "$REPO" --body "Todo vuelve a responder a las **${AHORA}**. ${AVISAR}"$'\n\n'"${TABLA}"$'\n\n'"Run: ${RUN_URL}" >/dev/null
   gh issue close "$ABIERTA" -R "$REPO" >/dev/null
   echo "Recuperado: issue #${ABIERTA} comentada y cerrada."
 fi
